@@ -2,18 +2,32 @@ package main
 
 import (
 	"bytes"
+	"encoding/json"
 	"fmt"
 	"io/ioutil"
+	"log"
 	"net/http"
 )
 
-var getworkurl = "http://localhost:9980/miner/headerforwork"
-var submitblockurl = "http://localhost:9980/miner/submitheader"
+var host = "http://192.168.1.94:8000"
+var address = "<SiaAddress>"
+var getworkpath = "/miner/getwork/"
+var submitblockpath = "/miner/submitwork/"
 
-func getHeaderForWork() (target, header []byte, err error) {
+type job struct {
+	WorkerAddress string
+	JobID         int64
+	BlockTarget   []byte
+	ShareTarget   []byte
+	Header        []byte
+	Nonce         uint64
+	Legacy        []byte
+}
+
+func getHeaderForWork() (share job, target, header []byte, err error) {
 	client := &http.Client{}
 
-	req, err := http.NewRequest("GET", getworkurl, nil)
+	req, err := http.NewRequest("GET", host+getworkpath+address, nil)
 	if err != nil {
 		return
 	}
@@ -43,14 +57,30 @@ func getHeaderForWork() (target, header []byte, err error) {
 		return
 	}
 
-	target = buf[:32]
-	header = buf[32:112]
+	//	target = buf[:32]
+	//	header = buf[32:112]
+
+	err = json.Unmarshal(buf, &share)
+
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	target = share.ShareTarget
+	header = share.Header
 
 	return
 }
 
-func submitHeader(header []byte) (err error) {
-	req, err := http.NewRequest("POST", submitblockurl, bytes.NewReader(header))
+func submitHeader(header []byte, share job) (err error) {
+	share.Legacy = header
+
+	enc, err := json.Marshal(share)
+	if err != nil {
+		log.Fatal("I can't json :(")
+	}
+
+	req, err := http.NewRequest("POST", host+submitblockpath+address, bytes.NewReader(enc))
 	if err != nil {
 		return
 	}

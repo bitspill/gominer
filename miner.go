@@ -17,6 +17,7 @@ type HashRateReport struct {
 type MiningWork struct {
 	Header []byte
 	Offset int
+	Share  job
 }
 
 func mine(clDevice *cl.Device, minerID int, hashRateReports chan *HashRateReport, miningWorkChannel chan *MiningWork) {
@@ -105,7 +106,7 @@ func mine(clDevice *cl.Device, minerID int, hashRateReports chan *HashRateReport
 			for i := 0; i < 8; i++ {
 				header[i+32] = nonceOut[i]
 			}
-			if err = submitHeader(header); err != nil {
+			if err = submitHeader(header, work.Share); err != nil {
 				log.Println(minerID, "- Error submitting block -", err)
 			}
 		}

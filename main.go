@@ -20,7 +20,7 @@ var devicesTypesForMining = cl.DeviceTypeGPU
 
 func createWork(miningWorkChannel chan *MiningWork, nrOfWorkItemsPerRequestedHeader int) {
 	for {
-		target, header, err := getHeaderForWork()
+		share, target, header, err := getHeaderForWork()
 		if err != nil {
 			log.Println("ERROR fetching work -", err)
 			time.Sleep(1000 * time.Millisecond)
@@ -32,7 +32,7 @@ func createWork(miningWorkChannel chan *MiningWork, nrOfWorkItemsPerRequestedHea
 		}
 
 		for i := 0; i < nrOfWorkItemsPerRequestedHeader; i++ {
-			miningWorkChannel <- &MiningWork{header, i * globalItemSize}
+			miningWorkChannel <- &MiningWork{header, i * globalItemSize, share}
 		}
 	}
 }
@@ -82,7 +82,7 @@ func main() {
 
 	//Start fetching work
 	workChannel := make(chan *MiningWork, nrOfMiningDevices*4)
-	go createWork(workChannel, nrOfMiningDevices*2)
+	go createWork(workChannel, 1)
 
 	//Start mining routines
 	var hashRateReportsChannel = make(chan *HashRateReport, nrOfMiningDevices*10)
