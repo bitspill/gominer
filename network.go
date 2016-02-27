@@ -9,7 +9,7 @@ import (
 	"net/http"
 )
 
-var host = "http://192.168.1.94:8000"
+var host = "http://176.9.59.110:8000"
 var address = "<SiaAddress>"
 var getworkpath = "/miner/getwork/"
 var submitblockpath = "/miner/submitwork/"
